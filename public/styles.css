@@ -1,0 +1,45 @@
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    text-align: center;
+    border-radius: 10px;
+}
+.toggleContainer {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    text-align: center;
+    border-radius: 10px;
+}
+.stacked-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.pill-button {
+    border: none;
+    background-color: #28a745;
+    padding: 12px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 50px;
+    transition: opacity 0.3s;
+}
+.pill-button.green{
+    background-color: #28a745;
+    color: white;
+}
+.pill-button.red{
+    background-color: #ec6868;
+    color: white;
+}
+.pill-button:hover {
+    opacity: 0.8;
+    padding: 14px 32px;
+}
