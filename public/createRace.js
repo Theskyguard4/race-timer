@@ -150,12 +150,19 @@ function setRunnerIds(runnerIds) {
 }
 function checkOnlineSave() {
     if (navigator.onLine && !isSaved) {
-        console.log("Device is online. Sending data to server...");
-        saveWholeRace();
-        if (ended == 1) {
-            isSaved = true;
+        
+        if (document.getElementById("autoSave").checked){
+            console.log("Device is online. Sending data to server...");
+            saveWholeRace();
+            if (ended == 1) {
+                isSaved = true;
+            }
+            return true;
         }
-        return true;
+        toggleSaveIcon(false)
+        return false;
+        
+        
       
     } else {
         if (isSaved == true) {
@@ -274,7 +281,7 @@ async function startRace(event) {
         console.error("Error starting race:", error);
     }
     raceCounter = setInterval(updateTimer, 1000);
-    saveRaceInterval = setInterval(checkOnlineSave, 2000);
+    saveRaceInterval = setInterval(checkOnlineSave, 1000);
     document.getElementById("distance").disabled = true;
     document.getElementById("raceCode").disabled = true;
     document.getElementById("racePassword").disabled = true;

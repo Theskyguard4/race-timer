@@ -89,7 +89,68 @@ body {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+.faq-container {
+  margin-top: 20px;
+  overflow-y: auto
+}
 
+/* FAQ Item */
+.faq-item {
+  margin-bottom: 10px;
+}
+
+.faq-question {
+  width: 100%;
+  text-align: left;
+  padding: 15px;
+  font-size: 18px;
+  background-color: #ff6f61;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px; /* Fixed height for the question box */
+  box-sizing: border-box; /* Ensure padding is included in the height */
+}
+
+.faq-question:hover {
+  background-color: #ff6f61;
+}
+
+.faq-answer {
+  padding: 0 15px; /* Adjust padding */
+  background-color: #f9f9f9;
+  border-left: 4px solid #ff6f61;
+  border-radius: 5px;
+  margin-top: 10px;
+  max-height: 0; /* Initially collapsed */
+  overflow: hidden; /* Hide content */
+  transition: max-height 0.3s ease; /* Smooth height transition */
+}
+
+.faq-answer p {
+  font-size: 16px;
+}
+
+/* Accordion Styles */
+.faq-question.active + .faq-answer {
+  max-height: 1000px; /* Allow content to expand */
+}
+
+/* Arrow Style */
+.arrow {
+  font-size: 20px;
+  transition: transform 0.3s ease; /* Smooth transition for rotation */
+}
+
+/* Rotate arrow when active */
+.faq-question.active .arrow {
+  transform: rotate(180deg);
+}
 /* Input Section */
 .input-section {
   text-align: center;
