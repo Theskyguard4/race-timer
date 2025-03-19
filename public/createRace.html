@@ -8,10 +8,70 @@
     <script defer src="/createRace.js"></script> 
 </head>
 <body>
-    <main class = "container">
-        <button class="pill-button red" id="backButt"><</button>
-        <header>
-            <h1>Create a New Race</h1>
-        </header>
+    <header class="page-header">
+        <section class="header-container">
+            <button class="back-button" id="backButt">&lt;</button>
+            <h1 class="page-title">Create a New Race</h1>
+        </section>
+        <section class="divider"></section>
+    </header>
+
+    <main class="page-main">
+
+        <section class="input-section">
+            <h2 id= "timer" class="timer">00:00</h2>
+        </section>
+        <section class="input-section">
+            <label for="raceCode" class="input-box">Race Code (10 numbers)*:</label>
+            <input type="text" id="raceCode" name="raceCode" class="input-box" required>
+        </section>
+        <section class="input-section">
+            <label for="racePassword"class="input-box">Race Password*:</label>
+            <input type="text" id="racePassword" name="racePassword" class="input-box" required>
+        </section>
+        <section class="input-section">
+            <label for="Distance"class="input-box">Distance:</label>
+            <input type="text" id="distance" name="distance" class="input-box" required>
+        </section>
+        <section class="input-section">
+            <label for="participants"class="input-box">Participants:</label>
+            <input type="text" id="participants" name="participants" class="input-box" required>
+        </section> 
+        <section class="input-section">
+            <label for="toggleSwitch"class="input-box">Auto Save?</label>
+            <label class="switch">
+                <input type="checkbox" id="toggleSwitch" checked>
+                <span class="slider"></span>
+            </label>
+        </section>
+        <div id="save-status" class="status-container">
+            <span id="status-icon" class="status-icon">❌</span>
+            <span id="status-text">Data not saved</span>
+        </div>
+        <section class="input-container">
+            <button class="pill-button" id="startStopRaceButt">Start Race</button>
+            <button class="pill-button" id="addFinishButt">Add Finish</button>
+            <button class="pill-button" id="newRaceButt">New Race</button>
+            <button class="pill-button" id="saveRaceButt">Saved</button>
+        </section>
+       
+        
+        </section>
+        <section class="results-container">
+            <h2 class="results-title">Race Results</h2>
+            <div class="divider results-divider"></div>
+            <table id="race-results" class="race-table">
+                <thead>
+                    <tr class="table-header">
+                        <th>Position</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data rows will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </section>
+        
     </main>
 </body>

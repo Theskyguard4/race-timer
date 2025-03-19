@@ -14,8 +14,10 @@ db.serialize(() => {
         raceId INTEGER PRIMARY KEY AUTOINCREMENT,
         raceCode TEXT NOT NULL UNIQUE,
         raceHashPass TEXT NOT NULL,
-        distance INTEGER NOT NULL,
-        participants INTEGER NOT NULL
+        distance INTEGER,
+        participants INTEGER ,
+        start TEXT,
+        ended INTEGER
     );`);
 
     db.run(`CREATE TABLE IF NOT EXISTS Runners (
@@ -26,19 +28,19 @@ db.serialize(() => {
 
     db.run(`CREATE TABLE IF NOT EXISTS racePositions (
         racePositionId INTEGER PRIMARY KEY AUTOINCREMENT,
-        runnerId INTEGER NOT NULL,
+        runnerId INTEGER,
         raceId INTEGER NOT NULL,
         position INTEGER NOT NULL,
-        time TIME NOT NULL,
+        time TEXT NOT NULL,
         FOREIGN KEY (runnerId) REFERENCES Runners(runnerId) ON DELETE CASCADE,
         FOREIGN KEY (raceId) REFERENCES Races(raceId) ON DELETE CASCADE
     );`);
 
     // Insert data into Races
-    db.run(`INSERT INTO Races (raceCode, raceHashPass, distance, participants) VALUES
-        ('1111111111', 'hashpass1', 5000, 10),
-        ('2222222222', 'hashpass2', 10000, 10),
-        ('3333333333', 'hashpass3', 15000, 10);`);
+    db.run(`INSERT INTO Races (raceCode, raceHashPass, distance, participants, start, ended) VALUES
+        ('1111111111', 'hashpass1', 5000, 10, 2700, 1),
+        ('2222222222', 'hashpass2', 10000, 10, 6000, 1),
+        ('3333333333', 'hashpass3', 15000, 10, 7000, 1);`);
 
     // Insert data into Runners
     db.run(`INSERT INTO Runners (fName, lName) VALUES

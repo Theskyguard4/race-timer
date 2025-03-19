@@ -8,17 +8,28 @@
     <script defer src="/login.js"></script> 
 </head>
 <body>
-    <section class = "container">
-        <button class="pill-button red" id="backButt"><</button>
-        <h1>Log In</h1>
-        <form action="/login" method="POST">
-            <section class = "stacked-buttons">
-                <label for="username">Race Code:</label>
-                <input type="text" id="raceCode" name="raceCode" required>
-                <label for="racePassword">Password:</label>
-                <input type="password" id="racePassword" name="racePassword" required>
-                <button class="pill-button" id="submitLoginButt">Log In</button>
-            </section>
-        </form>
+    <header class="page-header">
+        <section class="header-container">
+            <button class="back-button" id="backButt">&lt;</button>
+            <h1 class="page-title">Race Admin</h1>
+        </section>
+        <section class="divider"></section>
+    </header>
+
+    <main class="page-main">
+        <h1 class="results-title">Log In</h1>
+        <section class="input-container">
+            <form action="/login" method="POST">
+                <section class = "stacked-buttons">
+                    <label for="raceCode"class="input-box">Race Code:</label>
+                    <input type="text" id="raceCode" name="raceCode" class="input-box"required>
+                    <label for="racePassword"class="input-box">Password:</label>
+                    <input type="password" id="racePassword" name="racePassword" class="input-box"required>
+                    <button class="pill-button" id="submitLoginButt">Log In</button>
+                </section>
+            </form>
+        </section>
+        
+    </main>
     </section>
 </body>

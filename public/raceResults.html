@@ -1,26 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Race Results</title>
-    <link rel="stylesheet" href="/styles.css"> 
-    <script defer src="/raceResults.js"></script> 
-</head>
-<body>
-    <main class = "container">
-        <button class="pill-button red" id="backButt"><</button>
-        <h1>View Race Results</h1>
-        <label for="raceCode">Race Code:</label>
-        <input type="text" id="raceCode" name="raceCode" required>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/raceResults.js"></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <section class="header-container">
+        <button class="back-button" id="backButt">&lt;</button>
+        <h1 class="page-title">Race Results</h1>
+      </section>
+      <section class="divider"></section>
+    </header>
+
+    <main class="page-main">
+      <!-- Race Code Input Section -->
+      <section class="input-section">
+        <section class="input-container">
+          <label for="raceCode" class="input-box">Race Code (10 digits):</label>
+          <input
+            type="text"
+            id="raceCode"
+            name="raceCode"
+            class="input-box"
+            required
+          />
+        </section>
+      </section>
+
+      <!-- Race Results Section -->
+      <section class="results-container">
+        <h2 class="results-title">Race Results</h2>
+        <p class="results-text">
+          Enter a race code to view the past or live results
+        </p>
+        <div class="divider results-divider"></div>
+        <section class="input-section">
+          <label for="toggleSwitch" class="input-box">Auto Update</label>
+          <label class="switch">
+            <input type="checkbox" id="toggleSwitch" checked />
+            <span class="slider"></span>
+          </label>
+        </section>
+        <div class="divider results-divider"></div>
+        <section class="input-section">
+          <h2 id="timer" class="timer"></h2>
+        </section>
+        <table id="race-results" class="race-table">
+          <thead>
+            <tr class="table-header">
+              <th>Position</th>
+              <th>Name</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
     </main>
-    <section class = "toggleContainer">
-        <h2>Race Results</h2>
-        <div class="list-header">
-            <span>Position</span>
-            <span>Name</span>
-            <span>Runner Number</span>
-        </div>
-        <ul id="race-results" class="modern-ul"></ul>
-    </section>
-</body>
+  </body>
+</html>
