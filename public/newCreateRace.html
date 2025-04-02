@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Race</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/newCreateRace.js"></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <section class="header-container">
+        <button class="back-button" id="backButt">&lt;</button>
+        <h1 class="page-title">Create a New Race</h1>
+      </section>
+      <section class="divider"></section>
+    </header>
+
+    <main class="page-main">
+      <div class="clock-container">
+        <span id="clock">00:00:00</span>
+      </div>
+      <section class="raceInfo-container">
+        <!-- Create Race Section -->
+        <div class="createRaceSection" id="createRaceSection">
+          <h2>Create Your Race</h2>
+
+          <!-- Race Name Section -->
+          <section class="input-section">
+            <label for="raceName" class="input-box">Race Name:</label>
+            <input
+              type="text"
+              id="raceName"
+              name="raceName"
+              class="input-box"
+              required
+            />
+          </section>
+
+          <!-- Participants Section -->
+          <section class="input-section">
+            <div class="datetime-container">
+              <label for="startTime" class="input-box">Start Time:</label>
+              <input type="datetime-local" id="startTime" />
+            </div>
+          </section>
+
+          <!-- Auto Save Toggle -->
+          <section class="input-section">
+            <label for="toggleSwitch" class="input-box">Auto Save?</label>
+            <label class="switch">
+              <input type="checkbox" id="autoSave" checked />
+              <span class="slider"></span>
+            </label>
+          </section>
+
+          <!-- Action Buttons -->
+          <section class="input-container">
+            <button class="pill-button" id="createRaceButton">
+              Create My Race
+            </button>
+          </section>
+        </div>
+
+        <!-- Info Section (Hidden initially) -->
+        <div class="infoSection" id="infoSection" style="display: none">
+          <h2>Race Information</h2>
+          <p><strong>Please Save the below Information below:</strong></p>
+          <p><strong>Race Name:</strong> <span id="infoRaceName"></span></p>
+          <p><strong>Race Code:</strong> <span id="raceCode"></span></p>
+          <p><strong>Auto Save:</strong> <span id="infoAutoSave"></span></p>
+          <p>
+            <strong>Start Time:</strong>
+            <input type="datetime-local" id="startTimeInput" />
+            <span id="startTimeDisplay"></span>
+          </p>
+          <p id="startsInLabel">
+            <strong>Starting In:</strong><span id="startsIn"></span>
+          </p>
+          <p>
+            <strong>Public Share Link: </strong>
+            <span id="raceShareLink"></span>
+          </p>
+          <p>
+            <strong>Live Screen Link: </strong><span id="liveScreenLink"></span>
+          </p>
+          <section class="input-section" id="autoStartSection">
+            <label for="toggleSwitch" class="input-box">Ready to Start?</label>
+            <label class="switch">
+              <input type="checkbox" id="autoStart" checked />
+              <span class="slider"></span>
+            </label>
+          </section>
+          <section class="notification-box" id="countDownSection">
+            <h2 id="notificationText" class="notification-text"></h2>
+          </section>
+          <section class="timer-section">
+            <h2 id="timer" class="timer">0:00:00:00</h2>
+          </section>
+          <p class="slider-container" id="sliderContainer">
+            <strong>Countdown:</strong>
+            <input
+              type="range"
+              id="countdownSlider"
+              min="0"
+              max="30"
+              value="0"
+            />
+            <span id="countdownValue" class="countdown-value">0</span> mins
+          </p>
+          <section class="input-container">
+            <button class="pill-button" id="startStopRaceButt">
+              Start Race
+            </button>
+            <button class="pill-button" id="addFinishButt">Add Finish</button>
+            <button class="pill-button" id="newRaceButt">New Race</button>
+            <button class="pill-button" id="saveRaceButt">Saved</button>
+          </section>
+
+          <div id="save-status" class="status-container">
+            <span id="status-icon" class="status-icon">❌</span>
+            <span id="status-text">Data not saved</span>
+          </div>
+          <div id="autoStartPopup" class="popup hidden">
+            <p>Race will start in <span id="popupTimer">5</span> seconds!</p>
+            <button id="cancelAutoStart">Cancel Auto Start</button>
+          </div>
+          <section class="results-container">
+            <h2 class="results-title">Race Results</h2>
+            <div class="divider results-divider"></div>
+            <table id="race-results" class="race-table">
+              <thead>
+                <tr class="table-header">
+                  <th>Position</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Data rows will be inserted here dynamically -->
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

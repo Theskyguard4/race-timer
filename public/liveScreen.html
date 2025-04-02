@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Race Display</title>
+    <link rel="stylesheet" href="/liveStyles.css" />
+    <script defer src="/liveScreen.js"></script>
+  </head>
+  <body>
+    <div class="live-display-container">
+      <!-- Race Timer Section (Initially Hidden) -->
+      <div id="raceTimerSection" class="race-timer-container">
+        <h1 id="checkpointTitle" class="checkpoint-title">Checkpoint 1</h1>
+        <h3 id="notificationTitle" class="notification-title"></h3>
+        <h2 id="raceTimer" class="race-timer">00:00:00</h2>
+      </div>
+
+      <!-- Admin Controls -->
+      <div class="admin-controls">
+        <label for="checkpointInput">Checkpoint Title:</label>
+        <input
+          type="text"
+          id="checkpointInput"
+          placeholder="Enter Checkpoint"
+        />
+        <button onclick="updateCheckpoint()">Update</button>
+        <button id="fullscreenButt">Fullscreen</button>
+      </div>
+    </div>
+  </body>
+</html>

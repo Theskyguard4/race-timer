@@ -12,11 +12,9 @@ db.serialize(() => {
     // Create tables
     db.run(`CREATE TABLE IF NOT EXISTS Races (
         raceId INTEGER PRIMARY KEY AUTOINCREMENT,
+        raceName Text,
         raceCode TEXT NOT NULL UNIQUE,
-        raceHashPass TEXT NOT NULL,
-        distance INTEGER,
-        participants INTEGER ,
-        start TEXT,
+        startTimeDate TEXT NOT NULL,
         ended INTEGER
     );`);
 
@@ -37,10 +35,10 @@ db.serialize(() => {
     );`);
 
     // Insert data into Races
-    db.run(`INSERT INTO Races (raceCode, raceHashPass, distance, participants, start, ended) VALUES
-        ('1111111111', 'hashpass1', 5000, 10, 2700, 1),
-        ('2222222222', 'hashpass2', 10000, 10, 6000, 1),
-        ('3333333333', 'hashpass3', 15000, 10, 7000, 1);`);
+    db.run(`INSERT INTO Races (raceCode,startTimeDate, ended) VALUES
+        ('1111111111', 2700, 1),
+        ('2222222222', 6000, 1),
+        ('3333333333', 7000, 1);`);
 
     // Insert data into Runners
     db.run(`INSERT INTO Runners (fName, lName) VALUES

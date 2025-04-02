@@ -3,12 +3,13 @@ let autoUpdate = true;
 function goBack(event) {
   window.location.href = "index.html";
 }
-function getTime(startTime) {
+function getTime(startTimeISO) {
+  console.log("start: ", startTimeISO);
   const currentTime = new Date();
-  const startTimeObj = new Date(startTime);
-  const diffInMs = currentTime - startTimeObj;
-  return diffInMs;
+  const startTimeObj = new Date(Date.parse(startTimeISO));
+  return currentTime - startTimeObj;
 }
+
 function formatTime(isoDate) {
   const date = new Date(isoDate);
   const hours = String(date.getUTCHours()).padStart(2, "0"); // Get hours and pad with zero if needed
@@ -79,7 +80,7 @@ async function findRace() {
 }
 async function searchRaceResults(raceId) {
   try {
-    const response = await fetch("/api/races/:raceId/positions");
+    const response = await fetch("/api/races/positions");
     const racePositions = await response.json();
     race = [];
     console.log("racePositions: ", racePositions);
@@ -114,8 +115,9 @@ async function update() {
       const races = await response.json();
       raceCode = document.getElementById("raceCode").value;
       const race = races.find((race) => race.raceCode === String(raceCode));
+      console.log(race);
       if (String(race.ended) === "0") {
-        const diffInMs = getTime(race.start);
+        const diffInMs = getTime(race.startTimeDate);
         const hours = Math.floor(diffInMs / 3600000); // Convert ms to hours
         const minutes = Math.floor((diffInMs % 3600000) / 60000); // Get remaining minutes
         const seconds = Math.floor((diffInMs % 60000) / 1000); // Get remaining seconds
@@ -146,6 +148,13 @@ async function update() {
     document.getElementById("timer").innerHTML = "";
   }
 }
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+// Extract the raceCode from the URL and set it into the element
+
 function attachEventHandles(event) {
   document.getElementById("backButt").addEventListener("click", goBack);
   document.getElementById("raceCode").addEventListener("input", findRace);
@@ -153,6 +162,10 @@ function attachEventHandles(event) {
     .getElementById("toggleSwitch")
     .addEventListener("change", autoUpdateResults);
   updateInterval = setInterval(update, 500);
+  const raceCode = getQueryParam("raceCode");
+  if (raceCode) {
+    document.getElementById("raceCode").value = raceCode;
+  }
 }
 // Function to run when the DOM is loaded
 document.addEventListener("DOMContentLoaded", attachEventHandles);

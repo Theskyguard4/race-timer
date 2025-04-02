@@ -1,35 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
-    <link rel="stylesheet" href="/styles.css"> 
-    <script defer src="/login.js"></script> 
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Races</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/login.js"></script>
+  </head>
+  <body>
     <header class="page-header">
-        <section class="header-container">
-            <button class="back-button" id="backButt">&lt;</button>
-            <h1 class="page-title">Race Admin</h1>
-        </section>
-        <section class="divider"></section>
+      <section class="header-container">
+        <button class="back-button" id="backButt">&lt;</button>
+        <h1 class="page-title">Race Admin</h1>
+      </section>
+      <section class="divider"></section>
     </header>
 
     <main class="page-main">
-        <h1 class="results-title">Log In</h1>
-        <section class="input-container">
-            <form action="/login" method="POST">
-                <section class = "stacked-buttons">
-                    <label for="raceCode"class="input-box">Race Code:</label>
-                    <input type="text" id="raceCode" name="raceCode" class="input-box"required>
-                    <label for="racePassword"class="input-box">Password:</label>
-                    <input type="password" id="racePassword" name="racePassword" class="input-box"required>
-                    <button class="pill-button" id="submitLoginButt">Log In</button>
-                </section>
-            </form>
-        </section>
-        
+      <h1 class="results-title"></h1>
+      <div id="raceListContainer">
+        <h2>Your Races</h2>
+        <div id="raceList"></div>
+      </div>
+      <button class="pill-button" id="clearButt">Clear</button>
+      <button class="pill-button" id="createRaceButt">Create New Race</button>
     </main>
+
+    <section class="results-container">
+      <h2 class="results-title">Race Results</h2>
+      <div class="divider results-divider"></div>
+      <p>Click a result to view the participants details</p>
+      <table id="race-results" class="race-table">
+        <thead>
+          <tr class="table-header">
+            <th>Position</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data rows will be inserted here dynamically -->
+        </tbody>
+      </table>
+      <button id="saveRaceButt" class="pill-button">Save</button>
+      <button id="revertChangesButt" class="pill-button">Revert changes</button>
     </section>
-</body>
+  </body>
+</html>
