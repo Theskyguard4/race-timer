@@ -1,5 +1,3 @@
-let currentRaceCode = "";
-let currentStartTime = "";
 let currentRace;
 let isUpdated = true;
 class Runner {
@@ -22,29 +20,7 @@ class Runner {
   }
 }
 
-class Race {
-  constructor(raceId, raceName, raceCode, startTimeDate, ended) {
-    this.raceId = raceId;
-    this.raceName = raceName;
-    this.raceCode = raceCode;
-    this.startTimeDate = startTimeDate;
-    this.ended = ended;
-    this.runners = [];
-    this.positions = [];
-  }
 
-  toJSON() {
-    return {
-      raceId: this.raceId,
-      raceName: this.raceName,
-      raceCode: this.raceCode,
-      startTimeDate: this.startTimeDate,
-      ended: this.ended,
-      runners: this.runners,
-      positions: this.positions,
-    };
-  }
-}
 class Positions {
   constructor(raceId, runnerId, time, position) {
     this.raceId = raceId;
@@ -122,9 +98,13 @@ function toggleSaveIcon(onOff) {
   }
 }
 function updateChecker() {
+  console.log("Online");
   if (!isUpdated) {
+    
     if (navigator.onLine) {
+      
       saveWholeRace();
+
 
       console.log("Back Online, saving Race");
       isUpdated = true;
@@ -291,19 +271,8 @@ function generateRaceListHTML() {
 
   raceListContainer.appendChild(scrollableDiv);
 }
-function checkOnline() {
-  if (navigator.onLine) {
-    return false;
-  } else {
-    if (isSaved == true) {
-      return false;
-    }
-
-    toggleSaveIcon(false);
-    return false;
-  }
-}
 async function viewRace(raceCode) {
+  isUpdated = false;
   try {
     let races = retrieveLocalRaces();
     const testRace = {
@@ -334,7 +303,6 @@ async function viewRace(raceCode) {
     document.getElementById("save-status").style.display = "block";
     document.getElementById("race-name").style.display = "block";
     document.getElementById("race-name").value = race.raceName || "Unnamed";
-    currentStartTime = race.startTimeDate;
     const raceResults = race.runners || [];
     const tableBody = document.querySelector("#race-results tbody");
     tableBody.innerHTML = "";
@@ -539,105 +507,7 @@ async function renderMarshalls(marshalls) {
     requestedContainer.appendChild(noRequested);
   }
 }
-function createAnalysis() {
-  const checkpoints = ["Start", "CP1", "CP2", "Finish"];
-  const runnersAtEachCheckpoint = [50, 48, 45, 42];
-  const averageTimeBetween = [0, 5, 7, 9];
-  const checkpointDistances = [0, 2, 5, 8];
-  const averageTimes = [0, 15, 30, 45];
 
-  new Chart(document.getElementById("checkpointBarChart"), {
-    type: "bar",
-    data: {
-      labels: checkpoints,
-      datasets: [
-        {
-          label: "Runners",
-          data: runnersAtEachCheckpoint,
-          backgroundColor: "#4CAF50",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-      },
-      scales: {
-        y: { beginAtZero: true },
-      },
-    },
-  });
-
-  new Chart(document.getElementById("averageTimeChart"), {
-    type: "line",
-    data: {
-      labels: checkpoints,
-      datasets: [
-        {
-          label: "Avg Time Between Runners (minutes)",
-          data: averageTimeBetween,
-          fill: false,
-          borderColor: "#2196F3",
-          tension: 0.4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "top" },
-      },
-      scales: {
-        y: { beginAtZero: true },
-      },
-    },
-  });
-
-  new Chart(document.getElementById("distanceTimeChart"), {
-    type: "line",
-    data: {
-      labels: checkpoints,
-      datasets: [
-        {
-          label: "Distance (km)",
-          data: checkpointDistances,
-          borderColor: "#FF9800",
-          yAxisID: "y1",
-          tension: 0.4,
-        },
-        {
-          label: "Avg Travel Time (minutes)",
-          data: averageTimes,
-          borderColor: "#673AB7",
-          yAxisID: "y2",
-          tension: 0.4,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "top" },
-      },
-      scales: {
-        y1: {
-          type: "linear",
-          position: "left",
-          beginAtZero: true,
-          title: { display: true, text: "Distance (km)" },
-        },
-        y2: {
-          type: "linear",
-          position: "right",
-          beginAtZero: true,
-          title: { display: true, text: "Travel Time (minutes)" },
-          grid: { drawOnChartArea: false },
-        },
-      },
-    },
-  });
-}
 
 async function fetchMarshallInputs(marshalId) {
   try {

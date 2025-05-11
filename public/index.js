@@ -1,8 +1,8 @@
 function openCreateRace() {
-  window.location.href = "newCreateRace.html";
+  window.location.href = "createRace.html";
 }
 function openLogin() {
-  window.location.href = "/login.html";
+  window.location.href = "login.html";
 }
 function openRace() {
   window.location.href = "raceResults.html";
