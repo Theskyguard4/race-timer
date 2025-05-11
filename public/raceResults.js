@@ -4,7 +4,6 @@ function goBack(event) {
   window.location.href = "index.html";
 }
 function getTime(startTimeISO) {
-  console.log("start: ", startTimeISO);
   const currentTime = new Date();
   const startTimeObj = new Date(Date.parse(startTimeISO));
   return currentTime - startTimeObj;
@@ -12,9 +11,9 @@ function getTime(startTimeISO) {
 
 function formatTime(isoDate) {
   const date = new Date(isoDate);
-  const hours = String(date.getUTCHours()).padStart(2, "0"); // Get hours and pad with zero if needed
-  const minutes = String(date.getUTCMinutes()).padStart(2, "0"); // Get minutes and pad with zero if needed
-  const seconds = String(date.getUTCSeconds()).padStart(2, "0"); // Get seconds and pad with zero if needed
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+  const seconds = String(date.getUTCSeconds()).padStart(2, "0");
 
   return `${hours}:${minutes}:${seconds}`;
 }
@@ -22,40 +21,41 @@ async function autoUpdateResults() {
   autoUpdate = document.getElementById("toggleSwitch").checked;
 }
 async function findRace() {
-  code = document.getElementById("raceCode").value;
+  let code = document.getElementById("raceCode").value;
 
   if (code.length === 10) {
     const race = await searchRaceCode(code);
-
+    if (race === null) {
+      return;
+    }
     const raceId = race.raceId;
 
     const raceResultList = await searchRaceResults(raceId);
     const tableBody = document.querySelector("#race-results tbody");
-    tableBody.innerHTML = ""; // Clear previous results
-
+    tableBody.innerHTML = "";
     raceResultList.forEach((result, index) => {
       let row = document.createElement("tr");
-      let position = index + 1; // Position starts from 1 (not 0)
+      let position = index + 1;
       let positionClass = "";
 
-      // Set position class based on the position
       if (position === 1) {
-        positionClass = "gold"; // First place
+        positionClass = "gold";
       } else if (position === 2) {
-        positionClass = "silver"; // Second place
+        positionClass = "silver";
       } else if (position === 3) {
-        positionClass = "bronze"; // Third place
+        positionClass = "bronze";
       } else {
-        positionClass = "standard"; // All other positions
+        positionClass = "standard";
       }
 
       row.classList.add(positionClass);
+      let fnameLet = "";
       if (result.fName !== null) {
         fnameLet = result.fName.charAt(0).toUpperCase();
       } else {
         fnameLet = "";
       }
-      fnameLet = row.innerHTML = `
+      row.innerHTML = `
                 <td>${position}</td>
                 <td>${fnameLet} ${result.lName || ""}</td>
                 <td>${result.time}</td>
@@ -75,22 +75,22 @@ async function findRace() {
     });
   } else {
     const tableBody = document.querySelector("#race-results tbody");
-    tableBody.innerHTML = ""; // Clear previous results
+    tableBody.innerHTML = "";
   }
 }
 async function searchRaceResults(raceId) {
+  let race = [];
   try {
     const response = await fetch("/api/races/positions");
     const racePositions = await response.json();
-    race = [];
-    console.log("racePositions: ", racePositions);
+
     for (const runner of racePositions) {
       if (runner.raceId === parseInt(raceId)) {
         race.push(runner);
       }
     }
   } catch (error) {
-    console.error("Error fetching race data:", error);
+    void error;
     return race;
   }
   return race;
@@ -102,10 +102,9 @@ async function searchRaceCode(raceCode) {
     const race = races.find((race) => race.raceCode === String(raceCode));
     return race || null;
   } catch (error) {
-    console.error("Error fetching race data:", error);
+    void error;
     return null;
   }
-  return null;
 }
 
 async function update() {
@@ -113,26 +112,28 @@ async function update() {
     try {
       const response = await fetch("/api/races");
       const races = await response.json();
-      raceCode = document.getElementById("raceCode").value;
+      let raceCode = document.getElementById("raceCode").value;
       const race = races.find((race) => race.raceCode === String(raceCode));
-      console.log(race);
+      if (raceCode.length !== 10) {
+        return;
+      }
       if (String(race.ended) === "0") {
         const diffInMs = getTime(race.startTimeDate);
-        const hours = Math.floor(diffInMs / 3600000); // Convert ms to hours
-        const minutes = Math.floor((diffInMs % 3600000) / 60000); // Get remaining minutes
-        const seconds = Math.floor((diffInMs % 60000) / 1000); // Get remaining seconds
-
+        const hours = Math.floor(diffInMs / 3600000);
+        const minutes = Math.floor((diffInMs % 3600000) / 60000);
+        const seconds = Math.floor((diffInMs % 60000) / 1000);
+        console.log(diffInMs);
         const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
           .toString()
           .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-        console.log("formattedTime: ", formattedTime);
         document.getElementById("timer").innerHTML = formattedTime;
+      } else if (String(race.ended) < 0) {
+        document.getElementById("timer").innerHTML = "Waiting for Race";
       } else {
         const tableBody = document.querySelector("#race-results tbody");
         const rows = tableBody.children;
         if (rows.length > 1) {
-          // Ensure there are at least 2 rows
-          const secondLastRow = rows[rows.length - 2]; // Get the second-to-last row
+          const secondLastRow = rows[rows.length - 2];
           const lastTime = secondLastRow.children[2].innerHTML;
           document.getElementById("timer").innerHTML =
             "Finish time: " + lastTime;
@@ -142,7 +143,7 @@ async function update() {
       }
       findRace();
     } catch (error) {
-      console.error("Error fetching race data:", error);
+      void error;
     }
   } else {
     document.getElementById("timer").innerHTML = "";
@@ -153,9 +154,7 @@ function getQueryParam(param) {
   return urlParams.get(param);
 }
 
-// Extract the raceCode from the URL and set it into the element
-
-function attachEventHandles(event) {
+function attachEventHandles() {
   document.getElementById("backButt").addEventListener("click", goBack);
   document.getElementById("raceCode").addEventListener("input", findRace);
   document
@@ -167,5 +166,5 @@ function attachEventHandles(event) {
     document.getElementById("raceCode").value = raceCode;
   }
 }
-// Function to run when the DOM is loaded
+
 document.addEventListener("DOMContentLoaded", attachEventHandles);

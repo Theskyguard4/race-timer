@@ -21,11 +21,9 @@
         <span id="clock">00:00:00</span>
       </div>
       <section class="raceInfo-container">
-        <!-- Create Race Section -->
         <div class="createRaceSection" id="createRaceSection">
           <h2>Create Your Race</h2>
 
-          <!-- Race Name Section -->
           <section class="input-section">
             <label for="raceName" class="input-box">Race Name:</label>
             <input
@@ -37,24 +35,13 @@
             />
           </section>
 
-          <!-- Participants Section -->
           <section class="input-section">
-            <div class="datetime-container">
+            <section class="datetime-container">
               <label for="startTime" class="input-box">Start Time:</label>
               <input type="datetime-local" id="startTime" />
-            </div>
+            </section>
           </section>
 
-          <!-- Auto Save Toggle -->
-          <section class="input-section">
-            <label for="toggleSwitch" class="input-box">Auto Save?</label>
-            <label class="switch">
-              <input type="checkbox" id="autoSave" checked />
-              <span class="slider"></span>
-            </label>
-          </section>
-
-          <!-- Action Buttons -->
           <section class="input-container">
             <button class="pill-button" id="createRaceButton">
               Create My Race
@@ -62,13 +49,11 @@
           </section>
         </div>
 
-        <!-- Info Section (Hidden initially) -->
         <div class="infoSection" id="infoSection" style="display: none">
           <h2>Race Information</h2>
           <p><strong>Please Save the below Information below:</strong></p>
           <p><strong>Race Name:</strong> <span id="infoRaceName"></span></p>
           <p><strong>Race Code:</strong> <span id="raceCode"></span></p>
-          <p><strong>Auto Save:</strong> <span id="infoAutoSave"></span></p>
           <p>
             <strong>Start Time:</strong>
             <input type="datetime-local" id="startTimeInput" />
@@ -80,12 +65,15 @@
           <p>
             <strong>Public Share Link: </strong>
             <span id="raceShareLink"></span>
+            <button class="show-button" id="copyShareLinkButt">Copy</button>
           </p>
           <p>
-            <strong>Live Screen Link: </strong><span id="liveScreenLink"></span>
+            <strong>Live Screen Link: </strong>
+            <span id="liveScreenLink"></span>
+            <button class="show-button" id="copyLiveLinkButt">Copy</button>
           </p>
           <section class="input-section" id="autoStartSection">
-            <label for="toggleSwitch" class="input-box">Ready to Start?</label>
+            <label for="autoStart" class="input-box">Ready to Start?</label>
             <label class="switch">
               <input type="checkbox" id="autoStart" checked />
               <span class="slider"></span>
@@ -95,7 +83,7 @@
             <h2 id="notificationText" class="notification-text"></h2>
           </section>
           <section class="timer-section">
-            <h2 id="timer" class="timer">0:00:00:00</h2>
+            <h2 id="timer" class="timer">00:00:00:00</h2>
           </section>
           <p class="slider-container" id="sliderContainer">
             <strong>Countdown:</strong>
@@ -135,9 +123,7 @@
                   <th>Time</th>
                 </tr>
               </thead>
-              <tbody>
-                <!-- Data rows will be inserted here dynamically -->
-              </tbody>
+              <tbody></tbody>
             </table>
           </section>
         </div>

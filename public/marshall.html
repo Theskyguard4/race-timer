@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marshall Details</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/marshall.js"></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <section class="header-container">
+        <button class="back-button" id="backButt">&lt;</button>
+        <h1 class="page-title">Marshall</h1>
+      </section>
+      <section class="divider"></section>
+    </header>
+
+    <main class="page-main">
+      <section class="raceInfo-container">
+        <h2>Marshall Information</h2>
+
+        <section class="input-section">
+          <label for="raceCode" class="input-box">Race Code:</label>
+          <input type="text" id="raceCode" class="input-box" />
+        </section>
+
+        <section class="input-section">
+          <label for="marshallName" class="input-box">Marshall Name:</label>
+          <input type="text" id="marshallName" class="input-box" required />
+        </section>
+        <section class="input-section">
+          <label for="checkpointName" class="input-box">Checkpoint Name:</label>
+          <input type="text" id="checkpointName" class="input-box" required />
+        </section>
+        <section class="input-section">
+          <label for="checkpointDistance" class="input-box"
+            >Distance Into Race:</label
+          >
+          <input
+            type="text"
+            id="checkpointDistance"
+            class="input-box"
+            required
+          />
+        </section>
+
+        <div class="clock-container">
+          <span id="clock">00:00:00</span>
+        </div>
+        <section class="input-section">
+          <button class="pill-button" id="incrementCounter">
+            Record Runner
+          </button>
+        </section>
+        <section id="runnerTimesSection">
+          <div id="raceListContainer">
+            <div id="runnerList"></div>
+          </div>
+        </section>
+
+        <section class="input-section">
+          <textarea
+            id="marshallNotes"
+            class="input-box"
+            rows="4"
+            placeholder="Enter any notes here..."
+          ></textarea>
+        </section>
+
+        <section class="input-container">
+          <button class="pill-button" id="downloadBtn">Download Results</button>
+        </section>
+
+        <section class="input-container">
+          <button class="pill-button" id="uploadBtn">Upload Results</button>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

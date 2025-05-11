@@ -15,7 +15,6 @@ body {
   padding: 10px;
 }
 
-/* Containers */
 .countdown-container,
 .race-timer-container {
   display: flex;
@@ -26,30 +25,27 @@ body {
   width: 100%;
 }
 
-/* Responsive Font Sizes */
 .countdown-text,
 .checkpoint-title {
-  font-size: min(6vw, 3rem); /* Adjust based on screen width */
+  font-size: min(6vw, 3rem);
   margin-bottom: 10px;
 }
 .notification-title {
-  font-size: min(6vw, 3rem); /* Adjust based on screen width */
+  font-size: min(6vw, 3rem);
   margin-bottom: 10px;
   color: white;
 }
 
 .countdown-timer,
 .race-timer {
-  font-size: min(20vw, 12rem); /* Large but scales down for smaller screens */
+  font-size: min(20vw, 12rem);
   font-weight: bold;
 }
 
-/* Hide Elements */
 .hidden {
   display: none;
 }
 
-/* Admin Controls */
 .admin-controls {
   position: fixed;
   bottom: 20px;
@@ -71,7 +67,6 @@ body {
   cursor: pointer;
 }
 
-/* Additional Responsive Adjustments */
 @media (max-width: 768px) {
   .countdown-text,
   .checkpoint-title {
@@ -90,11 +85,11 @@ body {
   }
   .countdown-timer,
   .race-timer {
-    font-size: min(30vw, 8rem);
+    font-size: 40px;
   }
 }
-/* Race Started Background */
+
 .race-started {
-  background-color: #00aa00; /* Green */
+  background-color: #00aa00;
   transition: background-color 0.5s ease-in-out;
 }

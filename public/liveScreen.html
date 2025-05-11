@@ -9,14 +9,12 @@
   </head>
   <body>
     <div class="live-display-container">
-      <!-- Race Timer Section (Initially Hidden) -->
       <div id="raceTimerSection" class="race-timer-container">
         <h1 id="checkpointTitle" class="checkpoint-title">Checkpoint 1</h1>
         <h3 id="notificationTitle" class="notification-title"></h3>
         <h2 id="raceTimer" class="race-timer">00:00:00</h2>
       </div>
 
-      <!-- Admin Controls -->
       <div class="admin-controls">
         <label for="checkpointInput">Checkpoint Title:</label>
         <input
@@ -24,7 +22,7 @@
           id="checkpointInput"
           placeholder="Enter Checkpoint"
         />
-        <button onclick="updateCheckpoint()">Update</button>
+        <button id="updateName">Update</button>
         <button id="fullscreenButt">Fullscreen</button>
       </div>
     </div>

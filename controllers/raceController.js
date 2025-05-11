@@ -1,330 +1,380 @@
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("./database.db");
 
-// Get all races
-const getRaces = (req, res) => {
-  db.all("SELECT * FROM races", [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json(rows);
+function handleError(res, error, statusCode = 500) {
+  console.error(error);
+  res
+    .status(statusCode)
+    .json({ error: error.message || "Something went wrong" });
+}
+
+function runQuery(query, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(query, params, function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(this);
+      }
+    });
   });
+}
+
+function getAllQuery(query, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+const getRaces = async (req, res) => {
+  try {
+    const rows = await getAllQuery("SELECT * FROM races");
+    res.json(rows);
+  } catch (err) {
+    handleError(res, err);
+  }
 };
 
-// Get all runners in a specific race
-const getRunnersByRace = (req, res) => {
+const getRunnersByRace = async (req, res) => {
   const { raceId } = req.params;
-  db.all("SELECT * FROM runners WHERE race_id = ?", [raceId], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
+  try {
+    const rows = await getAllQuery("SELECT * FROM runners WHERE race_id = ?", [
+      raceId,
+    ]);
     res.json(rows);
-  });
+  } catch (err) {
+    handleError(res, err);
+  }
 };
-const getStartTime = (req, res) => {
-  db.all("SELECT raceCode, startTimeDate, ended FROM races", (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    return res.json(rows);
-  });
+
+const getStartTime = async (req, res) => {
+  try {
+    const rows = await getAllQuery(
+      "SELECT raceCode, startTimeDate, ended FROM races"
+    );
+    res.json(rows);
+  } catch (err) {
+    handleError(res, err);
+  }
 };
 
 async function saveEntireRace(req, res) {
-  const { raceCode, startTimeDate, runners, ended } = req.body;
-  let runnerIds = [];
-  let raceId;
-
+  const { raceCode, startTimeDate, runners, ended, raceName = "" } = req.body;
   try {
-    raceId = await getRaceId(raceCode.toString(), res);
-  } catch {
-    raceId = "";
-  }
-  try {
-    // Fetch raceId
+    let raceId = await getRaceId(raceCode);
 
-    // Delete the race if it already exists
-    if (raceId !== "") {
-      await db.run("DELETE FROM Races WHERE raceCode = ?", [raceCode]);
-      await db.run("DELETE FROM racePositions WHERE raceId = ?", [raceId]);
+    if (raceId) {
+      await runQuery("DELETE FROM Races WHERE raceCode = ?", [raceCode]);
+      await runQuery("DELETE FROM racePositions WHERE raceId = ?", [raceId]);
     }
 
-    // Insert the new race
-    raceId = await new Promise((resolve, reject) => {
-      db.run(
-        "INSERT INTO Races (raceCode, startTimeDate, ended) VALUES (?, ?, ?)",
-        [raceCode, startTimeDate, ended],
-        function (err) {
-          if (err) {
-            console.error("Error inserting race:", err);
-            reject(err);
-          } else {
-            resolve(this.lastID);
-          }
-        }
-      );
-    });
+    const result = await runQuery(
+      "INSERT INTO Races (raceCode, startTimeDate, ended, raceName) VALUES (?, ?, ?, ?)",
+      [raceCode, startTimeDate, ended, raceName]
+    );
+    raceId = result.lastID;
 
-    // Insert runners and their positions
-
+    const runnerIds = [];
     for (const runner of runners) {
       let runnerId = runner.runnerId;
-      // Insert new runner if runnerId is empty and name is provided
-      if ((runnerId === "" && runner.fname !== "") || runner.lname !== "") {
-        runnerId = await new Promise((resolve, reject) => {
-          db.run(
-            "INSERT INTO Runners (fName, lName) VALUES (?, ?)",
-            [runner.fname, runner.lname],
-            function (err) {
-              if (err) {
-                console.error("Error inserting runner:", err);
-                reject(err);
-              } else {
-                resolve(this.lastID);
-              }
-            }
-          );
-        });
-      } else if (runnerId !== "") {
-        // Update existing runner's name
-        await new Promise((resolve, reject) => {
-          db.run(
-            "UPDATE Runners SET fName = ?, lName = ? WHERE runnerId = ?",
-            [runner.fname, runner.lname, runnerId],
-            function (err) {
-              if (err) {
-                console.error("Error updating runner:", err);
-                reject(err);
-              } else {
-                resolve();
-              }
-            }
-          );
-        });
+
+      if (!runnerId && runner.fname && runner.lname) {
+        const newRunner = await runQuery(
+          "INSERT INTO Runners (fName, lName) VALUES (?, ?)",
+          [runner.fname, runner.lname]
+        );
+        runnerId = newRunner.lastID;
+      } else if (runnerId) {
+        await runQuery(
+          "UPDATE Runners SET fName = ?, lName = ? WHERE runnerId = ?",
+          [runner.fname, runner.lname, runnerId]
+        );
       }
 
-      // Insert runner's position
-      await db.run(
+      await runQuery(
         "INSERT INTO racePositions (runnerId, raceId, position, time) VALUES (?, ?, ?, ?)",
         [runnerId, raceId, runner.position, runner.time]
       );
       runnerIds.push(runnerId);
     }
 
-    // Send success response
     res.status(200).json({ message: "Race saved successfully", runnerIds });
-  } catch (error) {
-    console.error("Error saving race:", error);
-    res.status(500).json({ error: error.message || "Failed to save race" });
+  } catch (err) {
+    handleError(res, err);
   }
 }
 
-async function getRaceId(raceCode) {
-  return new Promise((resolve, reject) => {
-    db.all(
-      `
-            SELECT raceId FROM Races WHERE Races.raceCode = (?)
-        `,
+async function getMarshallsByRace(req, res) {
+  try {
+    const raceCode = req.params.raceCode;
+
+    const race = await getAllQuery("SELECT * FROM Races WHERE raceCode = ?", [
       raceCode,
-      (err, rows) => {
-        if (err) {
-          console.error("Error fetching raceId:", err);
-          return reject(err); // Reject the promise in case of an error
-        }
-        if (rows.length === 0) {
-          return reject("Race not found"); // Reject if no race is found
-        }
-        resolve(rows[0].raceId); // Resolves with the raceId if found
-      }
+    ]);
+    console.log(race, raceCode);
+
+    if (race.length === 0) {
+      return res.status(404).json({ error: "Race not found" });
+    }
+
+    const raceId = race[0].raceId;
+    const marshalls = await getAllQuery(
+      "SELECT * FROM Marshalls WHERE raceId = ?",
+      [raceId]
     );
-  });
+    console.log(marshalls);
+
+    return res.json(marshalls);
+  } catch (error) {
+    console.error("Error fetching marshalls:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+function addMarshallInput(req, res) {
+  const { time, marshallId } = req.body;
+  console.log(time, marshallId);
+  if (!marshallId || !time) {
+    return res.status(400).json({ error: "marshalId and time are required" });
+  }
+
+  db.run(
+    `INSERT INTO MarshallInputs (marshalId, time) VALUES (?, ?)`,
+    [marshallId, time],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to insert input" });
+      }
+      res
+        .status(201)
+        .json({ message: "Input added successfully", inputId: this.lastID });
+    }
+  );
+}
+
+async function deleteMarshallAndInputs(req, res) {
+  const { id } = req.params;
+  try {
+    await db.run("DELETE FROM MarshallInputs WHERE marshalId = ?", [id]);
+    await db.run("DELETE FROM Marshalls WHERE marshalId = ?", [id]);
+
+    res.status(200).json({ message: "Marshall and inputs deleted." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete marshall and inputs." });
+  }
+}
+
+async function confirmMarshall(req, res) {
+  const { id } = req.params;
+  try {
+    await db.run("UPDATE Marshalls SET confirmed = 1 WHERE marshalId = ?", [
+      id,
+    ]);
+
+    res.status(200).json({ message: "Marshall confirmed." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to confirm marshall." });
+  }
+}
+
+function getMarshallInputs(req, res) {
+  const { marshalId } = req.params;
+  console.log(marshalId);
+  if (!marshalId) {
+    return res.status(400).json({ error: "marshalId is required" });
+  }
+
+  db.all(
+    `SELECT inputId, time FROM MarshallInputs WHERE marshalId = ? ORDER BY time ASC`,
+    [marshalId],
+    (err, rows) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Failed to fetch inputs" });
+      }
+      console.log(rows);
+      res.status(200).json(rows);
+    }
+  );
+}
+
+const addMarshall = (req, res) => {
+  const { raceCode } = req.params;
+  const { marshallName, checkpointName, checkpointDistance } = req.body;
+  console.log(raceCode, marshallName, checkpointName, checkpointDistance);
+  db.get(
+    `SELECT raceId FROM Races WHERE raceCode = ?`,
+    [raceCode],
+    (err, row) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Database error finding race" });
+      }
+
+      if (!row) {
+        return res
+          .status(404)
+          .json({ error: "Race not found with provided code" });
+      }
+
+      const raceId = row.raceId;
+
+      db.run(
+        `INSERT INTO Marshalls (raceId, name, checkpointName, distance, confirmed) VALUES (?, ?, ?, ?, ?)`,
+        [raceId, marshallName, checkpointName, checkpointDistance, 0],
+        function (err) {
+          if (err) {
+            console.error(err);
+            res.status(500).json({ error: "Failed to add marshall" });
+          } else {
+            res.json({ message: "Marshall added", marshalId: this.lastID });
+          }
+        }
+      );
+    }
+  );
+};
+
+async function getRaceId(raceCode) {
+  const rows = await getAllQuery(
+    "SELECT raceId FROM Races WHERE raceCode = ?",
+    [raceCode]
+  );
+  if (rows.length === 0) throw new Error("Race not found");
+  return rows[0].raceId;
 }
 
 async function endRace(req, res) {
   const { raceCode } = req.body;
   try {
-    const query = "UPDATE Races SET ended = 1 WHERE raceCode = ?"; // Use the raceId directly without converting to string
-
-    // Use a promise to handle the query asynchronously
-    await new Promise((resolve, reject) => {
-      db.run(query, [raceCode], function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-
-    // Send a success response
+    await runQuery("UPDATE Races SET ended = 1 WHERE raceCode = ?", [raceCode]);
     res.json({
       success: true,
       message: `Race with code ${raceCode} marked as ended.`,
     });
-  } catch (error) {
-    console.error("Error marking race as ended:", error);
-    res.status(500).json({ error: "Failed to mark race as ended." });
+  } catch (err) {
+    handleError(res, err);
   }
 }
 
 async function addSingleRaceResult(req, res) {
   const { runnerId, raceCode, position, time } = req.body;
-  let raceId = null;
-
   try {
-    // Await the getRaceId function and handle its result
-    raceId = await getRaceId(raceCode.toString(), res);
-  } catch (error) {
-    console.error("Error fetching raceId:", error);
-    return res.status(404).json({ error: error.message || "Race not found" }); // Handle rejection (like "Race not found")
-  }
+    const raceId = await getRaceId(raceCode);
+    if (!raceId || !position || !time) {
+      return handleError(res, { message: "Missing required parameters" }, 400);
+    }
 
-  // If raceId, position, or time is missing, return an error
-  if (!raceId || !position || !time) {
-    return res.status(400).json({ error: "Invalid data format" });
-  }
+    await runQuery(
+      "INSERT INTO racePositions (runnerId, raceId, position, time) VALUES (?, ?, ?, ?)",
+      [runnerId, raceId, position, time]
+    );
 
-  try {
-    // Insert the race result into the database
-    await new Promise((resolve, reject) => {
-      db.run(
-        "INSERT INTO racePositions (runnerId, raceId, position, time) VALUES (?, ?, ?, ?)",
-        [runnerId, raceId, position, time],
-        function (err) {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
-    });
-
-    // Send success response after the database operation is complete
-    return res.json({
+    res.json({
       success: true,
       message: "Race result added successfully!",
     });
-  } catch (error) {
-    console.error("Error adding race result:", error);
-    return res.status(500).json({ error: "Failed to add race result" });
+  } catch (err) {
+    handleError(res, err);
   }
 }
 
 async function removeSinglePositionViaReButt(req, res) {
   const { raceCode, position, time } = req.body;
-  const raceId = await getRaceId(raceCode, res);
-  return new Promise((resolve, reject) => {
-    db.run(
-      `
-            DELETE FROM racePositions 
-            WHERE raceId = ? AND position = ? AND time = ?
-        `,
-      [raceId, position, time],
-      function (err) {
-        if (err) {
-          console.error("Error removing race result:", err);
-          return reject({
-            message: "Failed to remove race result",
-            error: err,
-          });
-        }
-        if (this.changes === 0) {
-          return reject("Race result not found");
-        }
-        resolve({ success: true, message: "Race result removed successfully" });
-      }
-    );
-  });
-}
-async function addRaceResults(req, res) {
-  const { runnerId, raceId, position, time } = req.body; // Expecting an array of results
-
-  if (!raceId || !Array.isArray(results) || results.length === 0) {
-    return res.status(400).json({ error: "Invalid data format" });
-  }
-
-  const insertQuery = `
-        INSERT INTO racePositions (runnerId, raceId, position, time) 
-        VALUES (?, ?, ?, ?), [runnerId, raceId, position, time])
-    `;
-
   try {
-    const dbTransaction = await db.transaction(async (tx) => {
-      for (const result of results) {
-        const { runnerId, position, time } = result;
+    const raceId = await getRaceId(raceCode);
+    const result = await runQuery(
+      "DELETE FROM racePositions WHERE raceId = ? AND position = ? AND time = ?",
+      [raceId, position, time]
+    );
 
-        if (!runnerId || !position || !time) {
-          throw new Error("Missing required fields");
-        }
+    if (result.changes === 0) {
+      return handleError(
+        res,
+        { message: "No matching race position found" },
+        404
+      );
+    }
 
-        await tx.run(insertQuery, [runnerId, raceId, position, time]);
-      }
+    res.json({
+      success: true,
+      message: "Race result removed successfully",
     });
-
-    res.json({ success: true, message: "Race results added successfully!" });
-  } catch (error) {
-    console.error("Error adding race results:", error);
-    res.status(500).json({ error: "Failed to add race results" });
+  } catch (err) {
+    handleError(res, err);
   }
 }
 
 async function addRace(req, res) {
   const { raceCode, startTimeDate, ended } = req.body;
-
-  if (raceCode == "" || startTimeDate == "") {
-    return res
-      .status(400)
-      .json({ error: "All fields (raceCode, startTimeDate) are required." });
+  if (!raceCode || !startTimeDate) {
+    return handleError(res, { message: "Missing required fields" }, 400);
   }
 
   try {
-    await db.run(
+    await runQuery(
       "INSERT INTO races (raceCode, startTimeDate, ended) VALUES (?, ?, ?)",
       [raceCode, startTimeDate, ended]
     );
-
     res.status(201).json({ message: "Race added successfully!" });
-  } catch (error) {
-    console.error("Error adding race:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (err) {
+    handleError(res, err);
   }
 }
-// Get race positions for a specific race
-const getRacePositions = (req, res) => {
-  db.all(
-    `
-        SELECT Runners.runnerID, Runners.fName, Runners.lName, 
-               racePositions.position, racePositions.raceId, racePositions.time
-        FROM racePositions
-        LEFT JOIN Runners ON Runners.runnerId = racePositions.runnerId
-        ORDER BY racePositions.position ASC
-    `,
-    (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json(rows);
-    }
-  );
-};
 
-// Corrected editRunner function
+const getRacePositions = async (req, res) => {
+  try {
+    const rows = await getAllQuery(
+      `
+      SELECT Runners.runnerID, Runners.fName, Runners.lName, 
+             racePositions.position, racePositions.raceId, racePositions.time
+      FROM racePositions
+      LEFT JOIN Runners ON Runners.runnerId = racePositions.runnerId
+      ORDER BY racePositions.position ASC
+    `
+    );
+    res.json(rows);
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+function getNewestRunner() {
+  return new Promise((resolve) => {
+    db.all(
+      "SELECT runnerID FROM Runners ORDER BY runnerID DESC LIMIT 1",
+      (err, rows) => {
+        if (err) {
+          return handleError(resolve, err);
+        } else {
+          resolve(rows);
+        }
+      }
+    );
+  });
+}
 async function getPositionRunnerId(raceId, position) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     db.all(
       "SELECT runnerId FROM racePositions WHERE position = ? AND raceId = ?",
       [position, raceId],
       (err, rows) => {
         if (err) {
-          return reject(err);
+          return handleError(resolve, err);
         }
         resolve(rows);
       }
     );
   });
 }
-
 async function editRunner(req, res) {
   const { fname, lname, position, raceCode } = req.body;
 
@@ -332,54 +382,56 @@ async function editRunner(req, res) {
 
   try {
     raceId = await getRaceId(raceCode.toString(), res);
-  } catch (error) {
-    console.error("Error fetching raceId:", error);
-    return res.status(404).json({ error: error.message || "Race not found" });
+  } catch (err) {
+    return handleError(res, err);
   }
 
   try {
     const runnerData = await getPositionRunnerId(raceId, position);
     runnerId = runnerData.length > 0 ? runnerData[0].runnerId : null;
-  } catch (error) {
-    console.error("Error fetching runner ID:", error);
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    return handleError(res, err);
   }
 
-  if (runnerId === "undefined" || runnerId === undefined || runnerId === "") {
+  if (!runnerId) {
     try {
-      // Insert new runner
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         db.run(
           `INSERT INTO Runners (fName, lName) VALUES (?, ?)`,
           [fname, lname],
           function (err) {
-            if (err) return reject(err);
-            resolve();
+            if (err) {
+              return handleError(res, err);
+            } else {
+              resolve();
+            }
           }
         );
       });
 
-      // Fetch the newest runner ID
       const rows = await getNewestRunner();
 
       if (rows.length === 0) {
-        return res
-          .status(500)
-          .json({ error: "Failed to retrieve new runner ID" });
+        return handleError(res, {
+          status: 400,
+          message: "Missing runners",
+        });
       }
       runnerId = rows[0].runnerId;
-    } catch (error) {
-      console.error("Error adding runner:", error);
-      return res.status(500).json({ error: "Failed to add runner" });
+    } catch (err) {
+      return handleError(res, err);
     }
   } else {
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       db.run(
         `UPDATE Runners SET fName = ?, lName = ? WHERE runnerID = ?`,
         [fname, lname, runnerId],
         function (err) {
-          if (err) return reject(err);
-          resolve();
+          if (err) {
+            return handleError(res, err);
+          } else {
+            resolve();
+          }
         }
       );
     });
@@ -387,17 +439,23 @@ async function editRunner(req, res) {
 
   try {
     if (!runnerId) {
-      return res.status(500).json({ error: "Runner ID not found" });
+      return handleError(res, {
+        status: 400,
+        message: "Missing required fields: RunnerId",
+      });
     }
 
     if (raceId && position) {
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         db.run(
           `UPDATE racePositions SET runnerId = ? WHERE raceId = ? AND position = ?`,
           [runnerId, raceId, position],
           function (err) {
-            if (err) return reject(err);
-            resolve();
+            if (err) {
+              return handleError(res, err);
+            } else {
+              resolve();
+            }
           }
         );
       });
@@ -407,24 +465,14 @@ async function editRunner(req, res) {
         message: "Runner updated successfully",
       });
     } else {
-      return res.status(400).json({ error: "RaceId or position is missing" });
+      return handleError(res, {
+        status: 400,
+        message: "Missing required fields: RaceID or Position",
+      });
     }
   } catch (err) {
-    console.error("Error updating race position:", err);
-    return res.status(500).json({ error: "Error updating race position" });
+    return handleError(res, err);
   }
-}
-
-function getNewestRunner() {
-  return new Promise((resolve, reject) => {
-    db.all(
-      `SELECT runnerID FROM Runners ORDER BY runnerID DESC LIMIT 1`,
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      }
-    );
-  });
 }
 
 module.exports = {
@@ -434,9 +482,14 @@ module.exports = {
   getRacePositions,
   addRace,
   getStartTime,
-  addRaceResults,
   addSingleRaceResult,
   removeSinglePositionViaReButt,
   endRace,
   saveEntireRace,
+  getMarshallsByRace,
+  addMarshall,
+  getMarshallInputs,
+  addMarshallInput,
+  deleteMarshallAndInputs,
+  confirmMarshall,
 };

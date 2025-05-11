@@ -1,5 +1,4 @@
 let runnerCount = 0;
-let saveRaceInterval;
 let StartTime = null;
 let isSaved = false;
 let started = false;
@@ -26,7 +25,7 @@ class Runner {
   }
 }
 
-function createRunnerList() {
+function generateRunnerList() {
   const tableBody = document.getElementById("race-results");
   const rows = tableBody.getElementsByTagName("tr");
   const runnerList = [];
@@ -61,8 +60,7 @@ function getTime() {
 async function saveWholeRace() {
   let raceCode = document.getElementById("raceCode").textContent;
   const startTimeDate = document.getElementById("startTimeInput").value;
-
-  const runners = createRunnerList().map((runner) => runner.toJSON()); // Convert runners to JSON format
+  const runners = generateRunnerList().map((runner) => runner.toJSON());
 
   try {
     const response = await fetch("/api/races/saveEntireRace", {
@@ -72,12 +70,11 @@ async function saveWholeRace() {
     });
 
     if (!response.ok) {
-      toggleSaveIcon(false);
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to save race");
     }
     const data = await response.json();
-    toggleSaveIcon(true);
+
     setRunnerIds(data.runnerIds);
   } catch (error) {
     console.error("Error saving race:", error);
@@ -90,17 +87,13 @@ async function saveWholeRace() {
       });
 
       if (!response.ok) {
-        toggleSaveIcon(false);
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to save race");
       }
 
       const data = await response.json();
-      toggleSaveIcon(true);
-      // Access the runnerIds returned from the backend
       setRunnerIds(data.runnerIds);
     } catch (error) {
-      toggleSaveIcon(false);
       console.error("Error saving race:", error);
     }
   }
@@ -126,7 +119,7 @@ function setRunnerIds(runnerIds) {
   for (let i = 1; i < rows.length; i += 2) {
     const hiddenRow = rows[i].nextElementSibling;
     if (hiddenRow) {
-      const runnerIdInput = hiddenRow.getElementsByTagName("input")[2]; // Assuming runnerId is the third input
+      const runnerIdInput = hiddenRow.getElementsByTagName("input")[2];
       if (runnerIdInput && idIndex < runnerIds.length) {
         runnerIdInput.value = runnerIds[idIndex];
         idIndex++;
@@ -136,15 +129,11 @@ function setRunnerIds(runnerIds) {
 }
 function checkOnlineSave() {
   if (navigator.onLine && !isSaved) {
-    if (document.getElementById("autoSave").checked) {
-      saveWholeRace();
-      if (ended == 1) {
-        isSaved = true;
-      }
-      return true;
+    if (ended == 1) {
+      isSaved = true;
     }
-    toggleSaveIcon(false);
-    return false;
+    toggleSaveIcon(true);
+    return true;
   } else {
     if (isSaved == true) {
       return false;
@@ -155,16 +144,15 @@ function checkOnlineSave() {
   }
 }
 function getRaceCountdown(startTimeStr) {
-  const startTime = new Date(startTimeStr); // Convert ISO string to Date object
+  const startTime = new Date(startTimeStr);
   const now = new Date();
-  const diffInMs = startTime - now; // Time difference in milliseconds
+  const diffInMs = startTime - now;
   if (diffInMs <= 0) {
     return { timeLeft: "00:00:00", message: "Race started!" };
   }
 
   const minutes = Math.floor(diffInMs / 60000);
   const seconds = Math.floor((diffInMs % 60000) / 1000);
-  const milliseconds = Math.floor((diffInMs % 1000) / 10); // Two-digit ms
 
   const formattedTime = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
@@ -211,15 +199,15 @@ function showAutoStartPopup(secondsLeft, minsLeft) {
     const autoStartTimeout = setTimeout(hideASPopup, 5000);
   }
 }
-function hideASPopup(){
-    document.getElementById("autoStartPopup").classList.add("hidden"); // Function to start the race
-};
+function hideASPopup() {
+  document.getElementById("autoStartPopup").classList.add("hidden");
+}
 function getAllStoredRaces() {
   return JSON.parse(localStorage.getItem("offlineRaces")) || [];
 }
 function getStoredRaceCodes() {
   const storedRaceCodes = JSON.parse(localStorage.getItem("raceCodes")) || [];
-  raceCodes = storedRaceCodes; // Set global variable
+  raceCodes = storedRaceCodes;
 }
 
 async function saveRaceLocal() {
@@ -236,7 +224,7 @@ async function saveRaceLocal() {
   let currentRace = races.find(
     (existingRace) => existingRace.raceCode === raceCode
   );
-  const runners = createRunnerList();
+  const runners = generateRunnerList();
   if (currentRace) {
     currentRace.runners = runners;
     currentRace.startTimeDate = startTimeDate;
@@ -249,10 +237,9 @@ async function saveRaceLocal() {
       ended: ended,
       runners: runners,
     };
-    races.push(currentRace); // Add the new race to the list
+    races.push(currentRace);
   }
 
-  // Save the updated race list back to localStorage
   localStorage.setItem("offlineRaces", JSON.stringify(races));
 }
 async function updateTimer() {
@@ -262,6 +249,7 @@ async function updateTimer() {
   } else {
     updateClock();
   }
+  checkOnlineSave();
   saveRaceLocal();
   if (ended === 1) {
     return;
@@ -310,7 +298,6 @@ async function updateTimer() {
       if (ready) {
         document.getElementById("notificationText").textContent = msg.msg;
       }
-      //document.getElementById("notificationText").hidden = true;
     } else if (msg.seconds <= 60) {
       if (ready === true) {
         document.getElementById("notificationText").textContent = msg.msg;
@@ -330,14 +317,16 @@ async function updateTimer() {
 
     return;
   }
+  if (await isOnline()) {
+    saveWholeRace();
+  }
 
   const diffInMs = getTime();
   const hours = Math.floor(diffInMs / 3600000);
   const minutes = Math.floor((diffInMs % 3600000) / 60000);
   const seconds = Math.floor((diffInMs % 60000) / 1000);
-  const milliseconds = Math.floor((diffInMs % 1000) / 10); // Convert to two-digit format
+  const milliseconds = Math.floor((diffInMs % 1000) / 10);
   if (hours >= 23 && minutes >= 59) {
-    //Ends race at a time before 24 Hours
     startRace();
   }
   const formattedTime = `${hours}:${minutes
@@ -355,28 +344,24 @@ async function getRaceCodes() {
 
     const newRaceCodes = [];
 
-    // Loop through allRaces and push the raceCode into newRaceCodes
     for (let i = 0; i < allRaces.length; i++) {
       newRaceCodes.push(allRaces[i].raceCode);
     }
-    // Extract all race codes from the response
+
     return newRaceCodes;
   } catch (error) {
     console.error("Error fetching race data:", error);
     alert("Error getting races");
-    return []; // Return an empty array in case of error
+    return [];
   }
 }
 function generateRaceLink() {
-  // Get the value of raceCode from the input field
   const raceCode = document.getElementById("raceCode").textContent;
 
-  // Get the current domain and build the URL with the raceCode query parameter
-  const currentDomain = window.location.origin; // Gets the base URL (e.g., http://yourdomain.com)
+  const currentDomain = window.location.origin;
   const raceLink = `${currentDomain}/raceResults.html?raceCode=${raceCode}`;
   const liveLink = `${currentDomain}/liveScreen.html?raceCode=${raceCode}`;
 
-  // Return the generated link
   return { raceLink, liveLink };
 }
 async function endRace() {
@@ -406,29 +391,20 @@ async function endRace() {
   alert(`Race Ended At ${clock.textContent}`);
 }
 
-function raceUpdated() {
-  const saveButt = document.getElementById("saveRaceButt");
-  saveButt.disabled = false;
-  saveButt.textContent = "Save Results";
-}
 function generateUniqueRaceCode() {
   let raceCode;
   let isUnique = false;
 
-  // Loop until a unique race code is found
   while (!isUnique) {
-    // Generate a 10-digit race code
     raceCode = Math.floor(Math.random() * 10000000000)
       .toString()
       .padStart(10, "0");
 
-    // Check if the generated race code already exists in the raceCodes list
     if (!raceCodes.includes(raceCode)) {
-      isUnique = true; // Set to true once a unique code is found
+      isUnique = true;
     }
   }
 
-  // Add the new race code to the list (optional, if you want to keep track of it)
   raceCodes.push(raceCode);
 
   return raceCode;
@@ -457,7 +433,7 @@ async function startRace() {
     document.getElementById("startTimeInput").value = getFutureISO(countdown);
     return;
   }
-  const runners = createRunnerList().map((runner) => runner.toJSON());
+  const runners = generateRunnerList().map((runner) => runner.toJSON());
   const raceCode = document.getElementById("raceCode").textContent;
   const startTimeDate = new Date().toISOString();
   StartTime = startTimeDate;
@@ -477,7 +453,7 @@ async function startRace() {
   }
   started = true;
   document.getElementById("sliderContainer").style.display = "none";
-  saveRaceInterval = setInterval(checkOnlineSave, 1000);
+  let saveRaceInterval = setInterval(checkOnlineSave, 1000);
   document.getElementById("autoStartSection").classList.add("hidden");
   document.getElementById("startTimeDisplay").textContent = StartTime;
   document.getElementById("notificationText").textContent = "Race Started!";
@@ -500,7 +476,7 @@ function reloadPage() {
   location.reload(true);
 }
 
-function addFinisher(event) {
+function addFinisher() {
   if (StartTime == null) {
     return;
   }
@@ -508,9 +484,9 @@ function addFinisher(event) {
   runnerCount += 1;
   const diffInMs = getTime();
 
-  const hours = Math.floor(diffInMs / 3600000); // Convert ms to hours
-  const minutes = Math.floor((diffInMs % 3600000) / 60000); // Get remaining minutes
-  const seconds = Math.floor((diffInMs % 60000) / 1000); // Get remaining seconds
+  const hours = Math.floor(diffInMs / 3600000);
+  const minutes = Math.floor((diffInMs % 3600000) / 60000);
+  const seconds = Math.floor((diffInMs % 60000) / 1000);
 
   const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
     .toString()
@@ -520,18 +496,17 @@ function addFinisher(event) {
   let position = runnerCount;
 
   let row = document.createElement("tr");
-  row.id = `${position}-row`; // Assign an ID to the main row
+  row.id = `${position}-row`;
   let positionClass = "";
 
-  // Set position class based on the position
   if (position === 1) {
-    positionClass = "gold"; // First place
+    positionClass = "gold";
   } else if (position === 2) {
-    positionClass = "silver"; // Second place
+    positionClass = "silver";
   } else if (position === 3) {
-    positionClass = "bronze"; // Third place
+    positionClass = "bronze";
   } else {
-    positionClass = "standard"; // All other positions
+    positionClass = "standard";
   }
 
   row.classList.add(positionClass);
@@ -541,10 +516,8 @@ function addFinisher(event) {
     `;
 
   row.addEventListener("click", () => {
-    // Get the next sibling element (hidden row)
     const hiddenRow = row.nextElementSibling;
 
-    // Check if the next sibling is a hidden row
     if (hiddenRow && hiddenRow.classList.contains("hidden-row")) {
       hiddenRow.classList.toggle("visible-row");
     }
@@ -552,82 +525,49 @@ function addFinisher(event) {
   tableBody.appendChild(row);
 
   const hiddenRow = document.createElement("tr");
-  hiddenRow.id = `${position}-hidden`; // Assign an ID to the hidden row
+  hiddenRow.id = `${position}-hidden`;
   hiddenRow.innerHTML = `
         <td colspan="3">
             <p><strong>First Name:</strong> <input type="text" id="${position}-runner-fname" ></p>
             <p><strong>Last Name:</strong> <input type="text" id="${position}-runner-lname" ></p>
             <p><input type="text" id="${position}-runner-Id" style="display: none;"  disabled></p>
-            <button id="${position}-remove" class="remove-button">Remove</button>
         </td>
     `;
   hiddenRow.classList.add("hidden-row");
 
   tableBody.appendChild(hiddenRow);
-
-  document.getElementById(`${position}-remove`).addEventListener(
-    "click",
-    (function (pos) {
-      return function () {
-        alert("Runner Removed");
-        const row = document.getElementById(`${pos}-row`); // Get the row
-        const hiddenRow = document.getElementById(`${pos}-hidden`); // Get the hidden row
-        if (row) row.remove();
-        if (hiddenRow) hiddenRow.remove();
-
-        updatePositions(); // Renumber positions when displaying them
-      };
-    })(position)
-  );
   document.getElementById(`${position}-runner-fname`).addEventListener(
     "change",
-    (function (pos) {
+    (function () {
       return function () {
-        isSaved = false; // Renumber positions when displaying them
+        isSaved = false;
       };
     })(position)
   );
   document.getElementById(`${position}-runner-lname`).addEventListener(
     "change",
-    (function (pos) {
+    (function () {
       return function () {
-        isSaved = false; // Renumber positions when displaying them
+        isSaved = false;
       };
     })(position)
   );
-  //updatePositions(); // Update positions after adding the new finisher
 }
 
-// Function to update the positions of all runners in the list
-function updatePositions() {
-  const tableBody = document.getElementById("race-results");
-  const rows = tableBody.getElementsByTagName("tr");
-  for (let i = 0; i < rows.length; i += 2) {
-    const row = rows[i];
-    const positionCell = row.getElementsByTagName("td")[0];
-    if (positionCell.id.includes("-row")) {
-      positionCell.textContent = i + 1;
-    }
-  }
-  raceUpdated();
-}
 async function isOnline() {
   try {
-    const response = await fetch("/api/races", { method: "HEAD" }); // Use HEAD for a lightweight request
-    return response.ok; // Returns true if the server responds
+    const response = await fetch("/api/races", { method: "HEAD" });
+    return response.ok;
   } catch (error) {
-    return false; // If fetch fails, return false
+    void error;
+    return false;
   }
 }
-async function createRace(event) {
-  // Get the selected values from the form
+async function createRace() {
   let raceCode = generateUniqueRaceCode();
-
   document.getElementById("raceCode").innerHTML = raceCode;
   const raceName = document.getElementById("raceName").value;
-  const autoSave = document.getElementById("autoSave").checked ? "✔" : "❌";
-  // Hide the create race section and show the race info section
-  const hasStartTimeCheckbox = document.getElementById("hasStartTime");
+
   let startTimeDate = "";
   let start = "";
   try {
@@ -666,7 +606,6 @@ async function createRace(event) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to add race");
     }
-    const data = await response.json();
   } catch (error) {
     console.error("Error starting race:", error);
   }
@@ -679,35 +618,34 @@ async function createRace(event) {
   document.getElementById("infoSection").style.display = "block";
 
   document.getElementById("infoRaceName").textContent = raceName;
-  document.getElementById("infoAutoSave").textContent = autoSave;
   created = true;
 }
-function cancelAutoStart(event) {
+function cancelAutoStart() {
   document.getElementById("autoStartPopup").classList.add("hidden");
   document.getElementById("autoStart").checked = false;
 }
-function updateCountDownSlider(event) {
+function updateCountDownSlider() {
   document.getElementById("countdownValue").textContent =
     document.getElementById("countdownSlider").value;
 }
 function showCountDownTimer() {
   const sliderContainer = document.getElementById("sliderContainer");
   if (document.getElementById("autoStart").checked) {
-    sliderContainer.style.display = "none"; // Hides it
+    sliderContainer.style.display = "none";
   } else {
-    sliderContainer.style.display = "block"; // Shows it
+    sliderContainer.style.display = "block";
   }
 }
 async function saveRaceCodesLocal() {
   try {
-    const raceCodeList = await getRaceCodes(); // Fetch race codes from API
-    localStorage.setItem("raceCodes", JSON.stringify(raceCodeList)); // Save to localStorage
+    const raceCodeList = await getRaceCodes();
+    localStorage.setItem("raceCodes", JSON.stringify(raceCodeList));
   } catch (error) {
     console.error("Error saving race codes:", error);
   }
 }
-async function onload(event) {
-  raceCounter = setInterval(updateTimer, 233);
+async function onload() {
+  const raceCounter = setInterval(updateTimer, 233);
   saveRaceCodesLocal();
   document
     .getElementById("countdownSlider")
@@ -723,7 +661,7 @@ async function onload(event) {
   document.getElementById("newRaceButt").classList.toggle("hidden");
   document.getElementById("saveRaceButt").classList.toggle("hidden");
   document.getElementById("addFinishButt").classList.toggle("hidden");
-  // Function to handle when the "Create My Race" button is clicked
+
   document
     .getElementById("createRaceButton")
     .addEventListener("click", createRace);
@@ -733,13 +671,26 @@ async function onload(event) {
   document
     .getElementById("autoStart")
     .addEventListener("change", showCountDownTimer);
+  document
+    .getElementById("copyShareLinkButt")
+    .addEventListener("click", copyShareLink);
+  document
+    .getElementById("copyLiveLinkButt")
+    .addEventListener("click", copyLiveLink);
   window.addEventListener("beforeunload", function (event) {
     if (!navigator.onLine) {
-      // Check if the user is offline
       event.preventDefault();
     }
   });
-  getStoredRaceCodes();
 }
-// Use event delegation for remove buttons
+
+function copyShareLink() {
+  const text = document.getElementById("raceShareLink").textContent;
+  navigator.clipboard.writeText(text);
+}
+function copyLiveLink() {
+  const text = document.getElementById("liveScreenLink").textContent;
+  navigator.clipboard.writeText(text);
+}
+
 document.addEventListener("DOMContentLoaded", onload);

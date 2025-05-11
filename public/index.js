@@ -1,14 +1,14 @@
-function openCreateRace(event) {
+function openCreateRace() {
   window.location.href = "newCreateRace.html";
 }
-function openLogin(event) {
+function openLogin() {
   window.location.href = "/login.html";
 }
-function openRace(event) {
+function openRace() {
   window.location.href = "raceResults.html";
 }
-function openHelp(event) {
-  window.location.href = "help.html";
+function openMarshall() {
+  window.location.href = "marshall.html";
 }
 
 async function getRaceCodes() {
@@ -18,29 +18,28 @@ async function getRaceCodes() {
 
     const newRaceCodes = [];
 
-    // Loop through allRaces and push the raceCode into newRaceCodes
     for (let i = 0; i < allRaces.length; i++) {
       newRaceCodes.push(allRaces[i].raceCode);
     }
-    // Extract all race codes from the response
+
     return newRaceCodes;
   } catch (error) {
     console.error("Error fetching race data:", error);
     alert("Error getting races");
-    return []; // Return an empty array in case of error
+    return [];
   }
 }
 
 async function saveRaceCodesLocal() {
   try {
-    const raceCodeList = await getRaceCodes(); // Fetch race codes from API
-    localStorage.setItem("raceCodes", JSON.stringify(raceCodeList)); // Save to localStorage
+    const raceCodeList = await getRaceCodes();
+    localStorage.setItem("raceCodes", JSON.stringify(raceCodeList));
   } catch (error) {
     console.error("Error saving race codes:", error);
   }
 }
 
-function attachEventHandles(event) {
+function attachEventHandles() {
   saveRaceCodesLocal();
   document
     .getElementById("newRaceButt")
@@ -49,7 +48,9 @@ function attachEventHandles(event) {
   document
     .getElementById("compRaceRetrievalButt")
     .addEventListener("click", openRace);
-  document.getElementById("helpButt").addEventListener("click", openHelp);
+  document
+    .getElementById("marshallButt")
+    .addEventListener("click", openMarshall);
 }
-// Function to run when the DOM is loaded
+
 document.addEventListener("DOMContentLoaded", attachEventHandles);

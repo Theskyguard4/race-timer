@@ -27,22 +27,49 @@
     </main>
 
     <section class="results-container">
-      <h2 class="results-title">Race Results</h2>
-      <div class="divider results-divider"></div>
-      <p>Click a result to view the participants details</p>
-      <table id="race-results" class="race-table">
-        <thead>
-          <tr class="table-header">
-            <th>Position</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Data rows will be inserted here dynamically -->
-        </tbody>
-      </table>
-      <button id="saveRaceButt" class="pill-button">Save</button>
-      <button id="revertChangesButt" class="pill-button">Revert changes</button>
+      <section class="result-section">
+        <h2 class="results-title">Race Results</h2>
+        <div class="divider results-divider"></div>
+        <p id="participant-hint">
+          Click a result to view the participant's details
+        </p>
+        <input id="race-name" class="race-name" />
+        <section id="save-status" class="status-container">
+          <span id="status-icon" class="status-icon">❌</span>
+          <span id="status-text">Data not uploaded</span>
+        </section>
+        <button class="pill-button" id="downloadCsvBtn">Download CSV</button>
+        <table id="race-results" class="race-table">
+          <thead>
+            <tr class="table-header">
+              <th>Position</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button id="saveRaceButt" class="pill-button">Save</button>
+        <button id="revertChangesButt" class="pill-button">
+          Revert changes
+        </button>
+      </section>
+
+      <section class="result-section">
+        <h2 class="results-title">Marshalls</h2>
+        <div class="divider results-divider"></div>
+
+        <section class="input-section">
+          <p>Confirmed Marshalls</p>
+          <div id="confirmedMarshalls"></div>
+        </section>
+
+        <section class="input-section">
+          <p>Requested Marshalls</p>
+          <div id="requestedMarshalls"></div>
+        </section>
+      </section>
     </section>
+
+    <div id="log" style="white-space: pre-line; font-family: monospace"></div>
   </body>
 </html>
